@@ -1,0 +1,241 @@
+{
+    "name": "F1-project-pipeline",
+    "properties": {
+        "activities": [
+            {
+                "name": "LoopCSV",
+                "type": "ForEach",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@variables('file_list')",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "copy_raw_to_bronze",
+                            "type": "Copy",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "source": {
+                                    "type": "DelimitedTextSource",
+                                    "storeSettings": {
+                                        "type": "AzureBlobFSReadSettings",
+                                        "recursive": true,
+                                        "enablePartitionDiscovery": false
+                                    },
+                                    "formatSettings": {
+                                        "type": "DelimitedTextReadSettings"
+                                    }
+                                },
+                                "sink": {
+                                    "type": "DelimitedTextSink",
+                                    "storeSettings": {
+                                        "type": "AzureBlobFSWriteSettings"
+                                    },
+                                    "formatSettings": {
+                                        "type": "DelimitedTextWriteSettings",
+                                        "quoteAllText": true,
+                                        "fileExtension": ".txt"
+                                    }
+                                },
+                                "enableStaging": false,
+                                "translator": {
+                                    "type": "TabularTranslator",
+                                    "typeConversion": true,
+                                    "typeConversionSettings": {
+                                        "allowDataTruncation": true,
+                                        "treatBooleanAsNumber": false
+                                    }
+                                }
+                            },
+                            "inputs": [
+                                {
+                                    "referenceName": "raw_csv_ds",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "file_name": {
+                                            "value": "@item().file",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "referenceName": "bronze_ds",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "file_name": {
+                                            "value": "@item().file",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "RunConfig",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "LoopCSV",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/f1-project/00-Configurations"
+                },
+                "linkedServiceName": {
+                    "referenceName": "databricks_ls",
+                    "type": "LinkedServiceReference"
+                }
+            },
+            {
+                "name": "LoopTransformNBs",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "RunConfig",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@createArray('02-Transform-Circuits-to-silver','03-Transform-Races','04-Transform-Driver','05-Transform-Constructors','06-Transform-Results')",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "BronzeToSilver",
+                            "type": "DatabricksNotebook",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "notebookPath": {
+                                    "value": "@concat('/f1-project/', item())",
+                                    "type": "Expression"
+                                }
+                            },
+                            "linkedServiceName": {
+                                "referenceName": "databricks_ls",
+                                "type": "LinkedServiceReference"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "GoldNotebook",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "LoopTransformNBs",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/f1-project/07_Race_Results_Gold"
+                },
+                "linkedServiceName": {
+                    "referenceName": "databricks_ls",
+                    "type": "LinkedServiceReference"
+                }
+            },
+            {
+                "name": "InsightsNotebook",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "GoldNotebook",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/f1-project/08-Race-Results-Insights"
+                },
+                "linkedServiceName": {
+                    "referenceName": "databricks_ls",
+                    "type": "LinkedServiceReference"
+                }
+            }
+        ],
+        "variables": {
+            "file_list": {
+                "type": "Array",
+                "defaultValue": [
+                    {
+                        "file": "circuits.csv"
+                    },
+                    {
+                        "file": "races.csv"
+                    },
+                    {
+                        "file": "drivers.csv"
+                    },
+                    {
+                        "file": "constructors.csv"
+                    },
+                    {
+                        "file": "results.csv"
+                    }
+                ]
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2026-03-19T15:44:42Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}
