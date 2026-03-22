@@ -12,7 +12,6 @@ The goal is to ingest raw Formula 1 data, process and transform it into structur
 
 **Flow:**
 
-GitHub (CSV Data)
 → Azure Data Factory (Ingestion)
 → Azure Data Lake Storage (Bronze Layer)
 → Azure Databricks (Transformation using PySpark)
@@ -73,7 +72,6 @@ This project follows the **Medallion Architecture**, which organizes data into t
 ### 🔹 Azure Data Factory (ADF)
 
 * Used for orchestrating data ingestion pipelines
-* Pulls data from GitHub and loads into ADLS
 * Parameterized pipelines for scalability
 
 ---
