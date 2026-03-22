@@ -198,18 +198,23 @@ Unity Catalog is used for centralized data governance and access control.
 
 ---
 
-## 📸 Screenshots
+## 📸 Power BI Report
 
-<img width="1910" height="1079" alt="Screenshot 2026-03-16 223215" src="https://github.com/user-attachments/assets/057eed17-6005-4d44-b2d5-908eee9c9b3c" />
-<img width="1919" height="1079" alt="Screenshot 2026-03-16 223435" src="https://github.com/user-attachments/assets/cf491c07-3c06-4d00-ba30-419626e15ba6" />
+<img width="1742" height="746" alt="Power BI Report" src="https://github.com/user-attachments/assets/09937b0a-2ae5-45f3-861c-2ae2540f4ebe" />
+
+
+---
+
+## 📸 ADF Pipeline
+
+<img width="1915" height="912" alt="ADF Pipeline - F1" src="https://github.com/user-attachments/assets/b05f6805-a184-4974-8597-32d0ce680ceb" />
+
 
 ---
 
 ## 📊 Sample Data
 
-Sample datasets are available in `/data/sample`.
-
-> ⚠️ Note: Full datasets are stored in Azure Data Lake and are not included due to size constraints.
+Sample datasets are available in `/dataset`.
 
 ---
 
@@ -242,4 +247,4 @@ Rachana Chavan
 
 ## ⭐ Conclusion
 
-This project showcases a production-level data engineering pipeline with modern tools and best practices, making it scalable, maintainable, and industry-ready.
+This project showcases an end-to-end data engineering pipeline with modern tools and best practices, making it scalable, maintainable, and industry-ready.
